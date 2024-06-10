@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info
+dist
+MUJOCO_LOG.TXT
+.DS_Store
+logdir
+.git
+scores
+.vscode/
+.idea
+wmlib/envs/dmcr/assets

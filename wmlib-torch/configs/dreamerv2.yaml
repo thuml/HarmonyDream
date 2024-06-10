@@ -1,0 +1,429 @@
+defaults:
+
+  # Train Script
+  logdir: /dev/null
+  load_logdir: /dev/null
+  seed: 0
+  task: dmc_walker_walk
+  envs: 1
+  envs_parallel: none
+  render_size: [64, 64] # input size to encoder
+  sim_size: [64, 64] # simulator image size
+  dmc_camera: -1
+  camera: none
+  dmcr_vary: all
+  atari_grayscale: True
+  time_limit: 0
+  action_repeat: 1
+  steps: 1e8
+  log_every: 1e4
+  eval_every: 1e5
+  eval_eps: 1
+  prefill: 10000
+  pretrain: 1
+  train_every: 5
+  train_steps: 1
+  expl_until: 0
+  replay: {capacity: 2e6, ongoing: False, minlen: 50, maxlen: 50, prioritize_ends: True, dreamsmooth: 0.0, smooth_type: ema, ends_priority: 50}
+  dataset: {batch: 16, length: 50}
+  log_keys_video: ['image']
+  log_keys_sum: '^$'
+  log_keys_mean: '^$'
+  log_keys_max: '^$'
+  precision: 16
+  jit: True
+  stop_steps: -1
+  hard_reset_every: -1
+
+  eval_envs_parallel: none
+  eval_envs: 1
+  eval_hard_reset_every: -1
+
+  # Agent
+  clip_rewards: tanh
+  expl_behavior: greedy
+  expl_noise: 0.0
+  eval_noise: 0.0
+  eval_state_mean: False
+
+  # Intrinsic bonus parameters
+  k: 16
+  beta: 0.0
+  beta_type: abs
+  intr_seq_length: 5
+  intr_reward_norm: {momentum: 0.99, scale: 1.0, eps: 1e-8, init: 1.0}
+  queue_size: 4096
+  queue_dim: 128
+
+  # World Model
+  grad_heads: [decoder, reward, discount]
+  pred_discount: True
+  dynamics_type: rssm
+  rssm: {ensemble: 1, hidden: 1024, deter: 1024, stoch: 32, discrete: 32, act: elu, norm: none, std_act: sigmoid2, min_std: 0.1, myopic: False, unimix: 0.0}
+  tssm: {mem: 50, layer: 2, dropout: 0.1, trm_act: silu, head: 4, ff_expand: 4, max_len: 100, chunk_size: -1, pre_ln: False, obs_tfm: False, gating: False}
+  encoder_type: plaincnn # ['plaincnn', 'resnet']
+  encoder: {
+    mlp_keys: '.*', 
+    cnn_keys: '.*', 
+    act: elu, 
+    norm: none, 
+    cnn_depth: 48, 
+    cnn_kernels: [4, 4, 4, 4], 
+    mlp_layers: [400, 400, 400, 400], 
+    res_norm: 'batch',
+    res_depth: 3,
+    res_layers: 2,
+    symlog_inputs: False,
+    # for DreamerV3
+    minres: 4,
+    blocks: 0,
+    resize: stride,
+  }
+  decoder_type: plaincnn # ['plaincnn', 'resnet']
+  decoder: {
+    mlp_keys: '.*', 
+    cnn_keys: '.*', 
+    act: elu, 
+    norm: none, 
+    cnn_depth: 48, 
+    cnn_kernels: [5, 5, 6, 6], 
+    mlp_layers: [400, 400, 400, 400], 
+    res_norm: 'batch',
+    res_depth: 3,
+    res_layers: 2,
+    # for DreamerV3
+    minres: 4,
+    blocks: 0,
+    resize: stride,
+    cnn_dist: "mse",
+    mlp_dist: "mse",
+  }
+  reward_head: {layers: 4, units: 400, act: elu, norm: none, dist: mse, bins: 255, outscale: 1.0}
+  discount_head: {layers: 4, units: 400, act: elu, norm: none, dist: binary}
+  loss_scales: {
+    kl: 1.0, 
+    reward: 1.0, 
+    discount: 1.0, 
+    proprio: 1.0,
+    image: 1.0,
+    slowreg: 0.0
+  }
+  kl: {free: 0.0, forward: False, balance: 0.8, free_avg: True}
+  model_opt: {opt: adam, lr: 1e-4, eps: 1e-5, clip: 100, wd: 1e-6}
+
+  # Actor Critic
+  actor: {layers: 4, units: 400, act: elu, norm: none, dist: auto, min_std: 0.1, symlog_inputs: False, unimix: 0.0}
+  critic: {layers: 4, units: 400, act: elu, norm: none, dist: mse, symlog_inputs: False, bins: 255, outscale: 1.0}
+  actor_opt: {opt: adam, lr: 8e-5, eps: 1e-5, clip: 100, wd: 1e-6}
+  critic_opt: {opt: adam, lr: 2e-4, eps: 1e-5, clip: 100, wd: 1e-6}
+  discount: 0.99
+  discount_lambda: 0.95
+  imag_horizon: 15
+  imag_batch: -1
+  actor_grad: auto
+  actor_grad_mix: 0.1
+  actor_ent: 2e-3
+  slow_target: True
+  slow_target_update: 100
+  slow_target_fraction: 1.0
+  slow_baseline: True
+  reward_norm: {momentum: 1.0, scale: 1.0, eps: 1e-8}
+
+  # DreamerV3
+  reward_perc: False
+  reward_perc_params: {momentum: 0.99, perclo: 0.05, perchi: 0.95}
+  slow_regularizer: False
+  fast_lambda_return: False
+
+  # Exploration
+  expl_intr_scale: 1.0
+  expl_extr_scale: 0.0
+  expl_opt: {opt: adam, lr: 3e-4, eps: 1e-5, clip: 100, wd: 1e-6}
+  expl_head: {layers: 4, units: 400, act: elu, norm: none, dist: mse}
+  expl_reward_norm: {momentum: 1.0, scale: 1.0, eps: 1e-8}
+  disag_target: stoch
+  disag_log: False
+  disag_models: 10
+  disag_offset: 1
+  disag_action_cond: True
+  expl_model_loss: kl
+  eval_only: False
+
+  # Harmonious Loss
+  harmony: False
+
+eval_hard:
+  eval_eps: 10
+  eval_envs_parallel: none
+  eval_envs: 1
+  eval_hard_reset_every: 1
+
+metaworld:
+
+  task: metaworld_door_open
+  encoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  decoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  dataset: {batch: 50, length: 50}
+  time_limit: 500
+  action_repeat: 1
+  eval_eps: 10
+  prefill: 5000
+  camera: corner
+  steps: 256000
+  stop_steps: 255000
+
+  replay.capacity: 1e6
+  eval_every: 1e4
+  pretrain: 100
+  clip_rewards: identity
+  grad_heads: [decoder, reward]
+  pred_discount: False
+  actor_ent: 1e-4
+  critic_opt.lr: 8e-5
+  model_opt.lr: 3e-4
+
+dmc_vision:
+
+  task: dmc_walker_walk
+  encoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  decoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  action_repeat: 2
+  eval_every: 1e4
+  prefill: 1000
+  pretrain: 100
+  steps: 502000
+  clip_rewards: identity
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  rssm: {hidden: 200, deter: 200}
+  model_opt.lr: 3e-4
+  actor_opt.lr: 8e-5
+  critic_opt.lr: 8e-5
+  actor_ent: 1e-4
+  kl.free: 1.0
+  eval_eps: 10
+
+dmc_proprio:
+
+  task: dmc_walker_walk
+  encoder: {mlp_keys: '.*', cnn_keys: '$^'}
+  decoder: {mlp_keys: '.*', cnn_keys: '$^'}
+  action_repeat: 2
+  eval_every: 1e4
+  prefill: 1000
+  pretrain: 100
+  clip_rewards: identity
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  rssm: {hidden: 200, deter: 200}
+  model_opt.lr: 3e-4
+  actor_opt.lr: 8e-5
+  critic_opt.lr: 8e-5
+  actor_ent: 1e-4
+  kl.free: 1.0
+
+dmc_remastered:
+
+  task: dmcr_walker_walk
+  encoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  decoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  action_repeat: 2
+  eval_every: 1e4
+  prefill: 1000
+  pretrain: 100
+  steps: 502000
+  clip_rewards: identity
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  model_opt.lr: 3e-4
+  actor_opt.lr: 8e-5
+  critic_opt.lr: 8e-5
+  actor_ent: 1e-4
+  kl.free: 1.0
+  dmcr_vary: all
+  eval_eps: 10
+
+
+dmc_natural_background:
+
+  task: dmcnbg_walker_walk
+  encoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  decoder: {mlp_keys: '$^', cnn_keys: 'image'}
+  action_repeat: 2
+  eval_every: 1e4
+  prefill: 1000
+  pretrain: 100
+  steps: 502000
+  clip_rewards: identity
+  pred_discount: False
+  replay.prioritize_ends: False
+  grad_heads: [decoder, reward]
+  model_opt.lr: 3e-4
+  actor_opt.lr: 8e-5
+  critic_opt.lr: 8e-5
+  actor_ent: 1e-4
+  kl.free: 1.0
+  eval_eps: 10
+
+debug:
+
+  jit: False
+  time_limit: 100
+  eval_every: 300
+  log_every: 300
+  prefill: 100
+  pretrain: 1
+  train_steps: 1
+  replay: {minlen: 10, maxlen: 30}
+  dataset: {batch: 10, length: 10}
+
+
+dmcr_hopper:
+  dmcr_vary: [bg, floor, body, target, reflectance, light]
+
+rlbench:
+  task: rlbench_reach_target
+  time_limit: 200
+  action_repeat: 2
+  eval_every: 5e3
+  log_every: 1e3
+  eval_eps: 5
+  steps: 502000
+  dataset: {batch: 50, length: 50}
+  kl.free: 1.0
+  loss_scales.kl: 0.1
+  # episodic
+  pred_discount: True
+  replay.minlen: 1
+  grad_heads: [reward, discount, decoder]
+  envs_parallel: process
+
+minecraft:
+  task: minecraft_hunt_cow
+  render_size: [128, 128] # input size to encoder
+  sim_size: [256, 256] # simulator image size
+  encoder: { mlp_keys: '$^', cnn_keys: 'image', cnn_kernels: [4, 4, 4, 4] }
+  decoder: { mlp_keys: '$^', cnn_keys: 'image', cnn_kernels: [4, 4, 4, 4] }
+  beta: 0.0
+  time_limit: 500
+  eval_eps: 10
+  dataset: { batch: 16, length: 50 }
+  prefill: 2000
+  pretrain: 100
+  eval_every: 1e4
+  replay.prioritize_ends: False
+  steps: 1002000
+  action_repeat: 1
+  hard_reset_every: 5
+  eval_hard_reset_every: 5
+  replay.minlen: 1
+  replay.maxlen: 50
+
+plaincnn:
+  encoder_type: plaincnn
+  decoder_type: plaincnn
+
+
+plainresnet:
+  encoder_type: resnet
+  decoder_type: resnet
+
+
+dreamerv3:
+  # Preprocess
+  clip_rewards: identity
+
+  # Symlog Predictions
+  encoder.symlog_inputs: True
+  decoder.cnn_dist: mse
+  decoder.mlp_dist: symlog_mse
+  reward_head: {dist: symlog_disc, bins: 255}
+  actor.symlog_inputs: False
+  critic: {dist: symlog_disc, symlog_inputs: False, bins: 255}
+
+  # World model Regularizer
+  kl.balance: 0.833
+  loss_scales.kl: 0.6
+  kl.free: 1.0
+
+  # Policy Regularizer
+  reward_perc: True
+  reward_perc_params: { momentum: 0.99, perclo: 0.05, perchi: 0.95 }
+
+  # Unimix Categoricals
+  rssm.unimix: 0.01
+  actor.unimix: 0.01
+
+  # Architecture
+  encoder_type: samepad
+  encoder.minres: 4
+  encoder.blocks: 0
+  encoder.resize: stride
+  decoder_type: samepad
+  decoder.minres: 4
+  decoder.blocks: 0
+  decoder.resize: stride
+  .*\.act: silu
+  .*\.norm: layer
+
+  # Critic EMA Regularizer
+  slow_regularizer: True
+  loss_scales.slowreg: 1.0
+  fast_lambda_return: True
+  slow_target_update: 1
+  slow_target_fraction: 0.02
+
+  # Replay Buffer
+  replay.ongoing: True
+  replay.capacity: 1e6
+  replay.minlen: 64
+  replay.maxlen: 64
+
+  # Hyperparams
+  model_opt.lr: 1e-4
+  model_opt.wd: 0.0
+  actor_opt.lr: 3e-5
+  actor_opt.wd: 0.0
+  critic_opt.lr: 3e-5
+  critic_opt.wd: 0.0
+  actor_ent: 3e-4
+  model_opt.eps: 1e-8
+  model_opt.clip: 1000
+  discount: 0.997
+  dataset.batch: 16
+  dataset.length: 64
+
+  # Initialization
+  reward_head.outscale: 0.0
+  critic.outscale: 0.0
+
+small:
+  rssm.deter: 512
+  rssm.hidden: 512
+  .*\.cnn_depth: 32
+  .*\.units: 512
+  .*\.layers: 2
+
+medium:
+  rssm.deter: 1024
+  rssm.hidden: 640
+  .*\.cnn_depth: 48
+  .*\.units: 640
+  .*\.layers: 3
+
+large:
+  rssm.deter: 2048
+  rssm.hidden: 768
+  .*\.cnn_depth: 64
+  .*\.units: 768
+  .*\.layers: 4
+
+xlarge:
+  rssm.deter: 4096
+  rssm.hidden: 1024
+  .*\.cnn_depth: 96
+  .*\.units: 1024
+  .*\.layers: 5

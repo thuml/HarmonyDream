@@ -1,0 +1,11 @@
+optax==0.1.7
+cloudpickle
+crafter
+gym==0.19.0
+numpy
+optax
+rich
+ruamel.yaml
+tensorflow-cpu
+tensorflow_probability
+gym[atari]

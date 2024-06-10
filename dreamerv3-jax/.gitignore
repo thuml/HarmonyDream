@@ -1,0 +1,17 @@
+.pytest_cache
+dist
+__pycache__/
+*.py[cod]
+*.egg-info
+MUJOCO_LOG.TXT
+.idea
+figures
+batch_mult.sh
+exp_anylearn_mult.py
+batch.sh
+batch_atari.sh
+exp_anylearn_atari.py
+exp_anylearn.py
+gen_exp.py
+exp.sh
+;
