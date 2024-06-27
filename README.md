@@ -9,7 +9,7 @@ For **HarmonyDream in JAX and Atari 100K experiments**, please refer to the `dre
 **TL;DR**: We find that harmonizing domination among two tasks, observation and reward modeling, in world models can dramatically boost the sample-efficiency of model-based RL and present HarmonyDream to maintain a dynamic equilibrium between them.
 
 <div align="center"><img align="center" src="assets/method.png" width="70%"></div>
-
+<br/>
 <div align="center"><img align="center" src="assets/environments.png" width="100%"></div>
 
 ## Implementation of HarmonyDream
