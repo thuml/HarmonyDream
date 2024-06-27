@@ -10,7 +10,10 @@ For **HarmonyDream in JAX and Atari 100K experiments**, please refer to the `dre
 
 <div align="center"><img align="center" src="assets/method.png" width="70%"></div>
 
+<div align="center"><img align="center" src="assets/environments.png" width="100%"></div>
+
 ## Implementation of HarmonyDream
+
 The implementation of HarmonyDream only involves a few lines of changes to the base method [here](wmlib-torch/wmlib/agents/dreamerv2.py). These changes can be easily applied to your own method, as listed below:
 1. Add three scalar variables `harmony_s1`, `harmony_s2`, and `harmony_s3`. (line 117-119)
 2. Multiply each loss by the corresponding coefficient and add the regularization term. (line 161-177)
